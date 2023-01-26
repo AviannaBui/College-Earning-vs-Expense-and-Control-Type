@@ -27,6 +27,9 @@ Furthermore, because the Scorecard is collected on a college level rather than i
 
 ## Appendix
 Technical Documentation: College Scorecard Institution-Level Data. (2021, July). U.S. Department of Education.
+    
     https://collegescorecard.ed.gov/assets/FullDataDocumentation.pdf 
+    
 Great Expectations: Salaries for 2017 College Grads Hit All-Time High, Korn Ferry Analysis Shows. (2017, May 19). Korn Ferry 
+
     https://www.kornferry.com/about-us/press/great-expectations-salaries-for-2017-college-grads-hit-all-time-high-korn-ferry-analysis-shows 
