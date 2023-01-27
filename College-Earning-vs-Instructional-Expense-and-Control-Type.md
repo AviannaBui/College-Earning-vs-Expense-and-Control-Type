@@ -24,7 +24,7 @@ collegescorecard <- read_csv("Scorecard.csv")
 
 # Part 2. Cleaning & Data Context
 
-# Data Cleaning
+## Data Cleaning
 
 ``` r
 scorecard <- collegescorecard %>%
@@ -46,7 +46,7 @@ scorecard <- collegescorecard %>%
     mutate(FAMINC.Cat = cut(FAMINC1000, 3))
 ```
 
-# Data Context
+## Data Context
 
 ``` r
 scorecard %>%
@@ -62,25 +62,25 @@ scorecard %>%
     ## # … with abbreviated variable names ¹​`max(MD_EARN_WNE_P6)`, ²​`min(FAMINC)`,
     ## #   ³​`max(FAMINC)`
 
-# Part 3. Research Question 1
+# Part 3. Research Question 1 - Do Higher College Instructional Expenditures per Full-time Student Correspond with Higher Earnings After Graduation?
 
 ## Visualization
 
 ``` r
-# Visualization: Median Earnings vs Centered Instructional Expenses
 scorecard %>%
     ggplot(aes(x = centeredexp, y = MD_EARN_WNE_P6, color = PREDDEG.Cat)) +
     geom_point(alpha = 0.4) + 
     geom_smooth(method = 'lm', se = FALSE) + 
-    labs(x = "Centered instructional expenses per full-time student (USD)", y = "Median earnings 6 years after entry (USD)", color = "Predominant degree awarded") + 
+    labs(title = "Median Earnings vs. Centered Instructional Expenses", x = "Centered Instructional Expenses per Full-time Student (USD)", y = "Median Earnings 6 Years After Entry (USD)", color = "Predominant Degree Awarded") + 
+    scale_color_brewer(palette = "Dark2") +
     theme_classic() + 
-    scale_color_viridis_d() 
+    theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 ``` r
-#calculate correlation  instructional expenditures range
+# calculate correlation
 scorecard %>%
     group_by(PREDDEG.Cat) %>%
     summarize(cor(centeredexp,MD_EARN_WNE_P6)) 
@@ -94,7 +94,7 @@ scorecard %>%
     ## 3 Bachelor's degrees                               0.448
 
 ``` r
-#calculate instructional expenditures range
+# calculate instructional expenditures range
 scorecard %>%
     group_by(PREDDEG.Cat) %>%
     summarize(min(INEXPFTE), max(INEXPFTE)) 
@@ -107,7 +107,85 @@ scorecard %>%
     ## 2 Associate degrees               621           61172
     ## 3 Bachelor's degrees              257          161644
 
+Overall, we can see from the graph that instructional expenses have a
+weakly to moderately positive association with colleges’ median earnings
+after graduation: institutions with higher instructional expenditures
+per full-time student are estimated to have a higher median income among
+graduates. Specifically, among institutions with 3 different primary
+degree types, the greatest correlation between instructional expenses
+per student and median earnings occurs in predominantly bachelor’s
+degree colleges with a 0.45 correlation coefficient, indicating a
+moderately, positive relationship. The correlation coefficients for
+institutions with primarily associate and certificate degrees are
+respectively 0.29 and 0.26, suggesting a weak to moderate positive
+correlation.
+
+Colleges that predominantly offer bachelor’s degrees appear to have
+higher median earnings 6 years after college enrollment. From the data
+points in the visualization, we can approximate that the majority of
+median earnings for predominantly bachelor’s degree institutions ranges
+from \$30,000 to \$75,000, compared to institutions with primarily
+associate degrees (with most median earnings ranging from \$20,000 to
+\$50,000) and certificate degrees (\$20,000 to \$30,000). It should be
+further noted that there are 3 predominantly bachelor’s degree
+institutions whose median earnings 6 years after entry are substantially
+higher than those of other institutions at around \$100,000 to
+\$125,000.
+
+Furthermore, while the colleges in the data set - regardless of degree
+type - have relatively similar instructional expenditures, institutions
+with predominantly bachelor’s degrees do have greater variability in
+their instructional expenses per student compared to colleges with
+primarily associate or certificate programs. In particular, the
+instructional costs per student range from \$307 to \$30,243 in
+predominantly certificate degree colleges and from \$621 to \$61,772 in
+predominately associate degree institutions. Meanwhile, the
+instructional expenditures per full-time student for institutions that
+mostly award bachelor’s degrees range from \$257 to \$161,644, a much
+larger range compared to the other two college types. Nevertheless, for
+predominately bachelor’s degree institutions, high instructional costs
+per student are not necessarily associated with improved colleges’
+median earnings. As seen from the plot, the three institutions with the
+highest median income after graduation have instructional expenses per
+student that are not very far from the mean, and many schools with very
+high instructional costs are in the same range of median income (around
+\$50,000 to \$75,000) as colleges with lower instructional expenditures
+per student.
+
 ## Fitted Model
+
+I fit a multiple linear regression model to examine instructional costs
+affect salary after graduation. As a result, two variables,
+instructional expenses per full-time equivalent student and median
+earnings 6 years after entry, are included in the model. Average family
+income is also included as a precision variable: a person’s from a
+high-income family might gain better chances to work in a high-income
+job due to the cumulative effects of living in a wealthy, low-crime
+neighborhood, better family connections, overall better education from
+elementary school to college, etc. Meanwhile, a person’s family income
+does not affect the instructional expenditures of a college, so it
+functions as a precision variable. In addition, I center the
+instructional costs per student and the family income variable to make
+the intercept of the model more sensible to interpret because it does
+not make sense for a college to have no instructional expenses or for a
+family to have no income.
+
+The undergraduate degree the institution mainly awards is added to the
+model as a confounding variable. I use this variable as a confounder
+rather than an effect modifier because I believe the relationship
+between instructional expenses and median earnings after graduation does
+not differ depending on the type of degree a college predominantly
+awards. Nevertheless, the type of degree awarded affects median income,
+since the type of degree limits the types and levels of jobs a person is
+qualified for. Moreover, the type of degree awarded impacts
+instructional costs due to the length of time needed to finish different
+degrees, required facilities (e.g. research labs), etc. Considering that
+instructional expenditures do not affect the type of degree a college
+mainly awards, it is reasonable for a college’s predominantly degree
+type to act as a confounding variable. In the model, colleges that
+mainly award certificate degrees serve as the baseline metrics, whereas
+associate degree programs and bachelor’s degree institutions are
+displayed.
 
 ``` r
 mod1 <- lm(MD_EARN_WNE_P6 ~ centeredexp + PREDDEG.Cat + centeredfaminc, data = scorecard) # fit a multiple linear regression model 
@@ -150,17 +228,77 @@ tidy(mod1)
     ## 4 PREDDEG.CatBachelor's degrees  3480.    438.           7.95 2.61e- 15
     ## 5 centeredfaminc                    0.174   0.00667     26.1  1.06e-136
 
+The model demonstrates a positive relationship between instructional
+expenditures per student and institutional median earnings 6 years after
+entry. It also shows that people from families with high income are
+associated with greater chances to work in higher-income jobs after
+college. In addition, the median earnings for people with bachelor’s
+degrees are expected to be higher than that of people with associate and
+certificate degrees.
+
+We estimate that the average median earnings 6 years after entry among
+students who go to colleges that primarily award certificate degrees and
+have an average instructional expense per student, and whose families
+earn an average income is \$29,024. For institutions with the same
+predominant type of degree awarded and the same average family income,
+each dollar increase in instructional expenditures per student is
+associated with a \$0.32 increase, on average, in median income among
+colleges.
+
+We are 95% confident that the true change in the average median income
+of colleges associated with each dollar increase in instructional
+expenses per student is between 0.29 and 0.36 dollars, holding average
+family income and the predominant type of degree the college awarded
+constant. In this context, the word “confident” refers to our interval
+construction process - the expectation that 95% of the samples will
+generate confidence intervals that contain the true population value.
+Our confidence interval is very small, suggesting that our sample is
+relatively large and has a lower degree of variability. In addition, the
+interval is comprised of only positive values, signaling that there is
+an associated increase in colleges’ median income post-graduation with
+greater instructional expenses, keeping average family earnings and the
+type of degree the college primarily awards constant.
+
+The p-value for the slope coefficient of the centered instructional
+expenses variable is smaller than 0.0001. This indicates that the
+probability of observing a test statistic as or more extreme than our
+observed test statistic for this variable is extremely small, assuming
+that the null hypothesis is true. Because our p-value is much lower than
+our chosen significance threshold of 0.05, we reject our null hypothesis
+that there is no difference in college’s median earnings among graduates
+6 years after entry that is associated with different instructional
+expenditures per student, keeping average family income and the type of
+degree colleges predominantly award constant. Rather, we favor the
+alternative hypothesis that higher instructional expenses per student
+are associated with increased colleges’ median earnings among graduates
+6 years after entry, accounting for average family income and the
+primary type of degree colleges award.
+
+Among schools with the same instructional fees per student and in
+families with similar income, students’ estimated median earnings in
+primarily associate-degree and bachelor-degree colleges are
+respectively, on average, \$1,046 and \$3,480 higher than that of
+students from predominantly certificate-degree colleges. Meanwhile,
+within institutions of similar type and similar instructional expenses
+per student, each dollar increase in the average family income of
+institutions is associated with a \$0.17 rise, on average, in college
+median earnings. All of these variables have smaller p-values than our
+significant threshold, so we would favor the alternative hypotheses that
+there is a relationship between our explanatory variables and colleges’
+median earnings, accounting for the other variables in the model.
+
 ## Model Evaluation
 
 ``` r
 #residuals vs fitted values
 augment(mod1) %>%
     ggplot(aes(y = .resid, x = .fitted)) + 
-    geom_point() + 
-    geom_smooth(se = FALSE) + 
+    geom_point(alpha = 0.5) + 
+    geom_smooth(se = FALSE, color = "#F699CD") + 
     geom_hline(yintercept = 0) + 
     labs(x = 'Fitted Values (USD)', y = 'Residuals (USD)', title = 'Residuals vs Fitted Values') + 
-    theme_classic()
+    theme_classic() +
+    theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
@@ -169,11 +307,12 @@ augment(mod1) %>%
 #residuals vs instructional expenses
 augment(mod1) %>%
     ggplot(aes(y = .resid, x = centeredexp)) + 
-    geom_point() + 
-    geom_smooth(se = FALSE) + 
+    geom_point(alpha = 0.5) + 
+    geom_smooth(se = FALSE, color = "#F699CD") + 
     geom_hline(yintercept = 0) + 
     labs(x = 'Centered Instructional Expenses (USD)', y = 'Residuals (USD)', title = 'Residuals vs Centered Instructional Expenses') +  
-    theme_classic() 
+    theme_classic() +
+    theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
@@ -183,10 +322,10 @@ augment(mod1) %>%
 augment(mod1) %>%
     ggplot(aes(y = .resid, x = PREDDEG.Cat)) + 
     geom_boxplot() + 
-    geom_smooth(se = FALSE) + 
     geom_hline(yintercept = 0) + 
-    labs(x = 'Predominant degree awarded', y = 'Residuals (USD)', title = 'Residuals vs Predominantly Awarded Degree Types') + 
-    theme_classic() 
+    labs(x = 'Predominant Degree Awarded', y = 'Residuals (USD)', title = 'Residuals vs Predominantly Awarded Degree Types') + 
+    theme_classic() +
+    theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->
@@ -195,12 +334,13 @@ augment(mod1) %>%
 #residuals vs average family income
 augment(mod1) %>%
     ggplot(aes(y = .resid, x = centeredfaminc)) + 
-    geom_point() + 
-    geom_smooth(se = FALSE) + 
+    geom_point(alpha = 0.5) + 
+    geom_smooth(se = FALSE, color = "#F699CD") + 
     geom_hline(yintercept = 0) + 
     scale_x_continuous(labels = scales :: comma) + 
     labs(x = 'Centered Average Family Income (USD)', y = 'Residuals (USD)', title = 'Residuals vs Centered Average Family Income') +  
-    theme_classic() 
+    theme_classic() +
+    theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->
@@ -217,20 +357,68 @@ glance(mod1)
     ## # … with 2 more variables: df.residual <int>, nobs <int>, and abbreviated
     ## #   variable names ¹​adj.r.squared, ²​statistic, ³​deviance
 
-# Part 4. Research Question 2
+For the plots with fitted values and centered average family income, the
+residual plots are quite straight, with many residuals close to 0 and
+have a relatively equal spread across prediction values, indicating that
+the model is quite consistent in its prediction. The residual boxplot
+with 3 types of predominantly awarded degrees also has a fairly equal
+spread, with the median values of the residuals across 3 categories very
+close to 0. Nevertheless, we can see that the residual range of
+colleges’ median earnings post-entry for predominantly certificate
+degree colleges is smaller than that of associate degree colleges, and
+that of associate degree colleges is smaller than primarily bachelor’s
+degree schools. This demonstrates that the model has a more consistent
+prediction for predominantly certificate degree colleges than associate
+and bachelor’s degree ones. Regarding the residual plot of the centered
+instructional expenses variable, the residuals are not mostly close to 0
+but are more spread out, showing that the prediction, in this case, is
+not very consistent.
+
+The downside is that, according to the residual plot of fitted values,
+our model overpredicts for fitted values in the higher end. More
+specifically, when the fitted median earnings of colleges are above
+\$50,000, our model overestimates by quite a large amount, at around
+\$2,000 to \$10,000, estimated from the graph. This is possibly due to
+the fact that most of the fitted values range from \$20,000 to \$50,000,
+whereas only a few of these values lie outside that range, leading to
+unreliable predictions. In addition, the boxplot with the primary degree
+awarded explanatory variables also indicates that the range of our value
+overestimation is wider than our value underestimation since the tail
+length for residual values greater than 0 is longer than that of
+residuals smaller than 0. In terms of outliers, the graphs with fitted
+values present that there are 3 outliers, more specifically the 3 fitted
+values with residuals greater than 60,000. As seen with the boxplots,
+these 3 outliers are overpredicted values when the primarily offered
+degree by colleges is bachelor’s degree.
+
+The R-squared of our model is 0.465, meaning that 46.5% of the variation
+in median earnings after entry can be explained by instructional
+expenses per full-time student, average family income, and the type of
+degree the colleges mainly award. Meanwhile, the model’s residual
+standard error is 7572, suggesting that our linear regression model can
+predict colleges’ median earnings after graduation with a margin of
+error of \$15,150. This is quite a large amount of money, which might
+result from the impact of the outliers. Without the outliers, our model
+would be likely to have a smaller residual standard error and can
+generate more reliable predictions. Considering that our explanatory
+variables are able to account for almost half of the variance in
+colleges’ median earnings 6 years after entry, however, I think the
+model still can provide a relatively dependable prediction.
+
+# Part 4. Research Question 2 - Is a Private College Education Associated with a Higher Odds of Above-average Median Salary after College?
 
 ## Visualization
 
 ``` r
-#Visualization: Above-average median income colleges vs. Control type & Average family income group
 scorecard %>%
     mutate(aboveaveincome = factor(aboveaveincome)) %>% 
     ggplot() +
     geom_mosaic(aes(x = product(aboveaveincome, Control.Cat), fill = aboveaveincome)) + 
     facet_grid( . ~ FAMINC.Cat) + 
-    labs(x = "Type of institution", y = "Have Above Average Income (1 = Yes, 0 = No)", fill = "Above Average Income (1 = Yes, 0 = No)") + 
-    scale_fill_manual(values = c("lightblue", "steelblue")) + 
-    theme_classic() 
+    labs(title = "Odds of Institutions Having Above-Average Income", x = "Type of institution", y = "Have Above Average Income (1 = Yes, 0 = No)", fill = "Above Average Income (1 = Yes, 0 = No)") + 
+    scale_fill_manual(values = c("#99C24D", "#048BA8")) + 
+    theme_classic() +
+    theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
     ## Warning: `unite_()` was deprecated in tidyr 1.2.0.
@@ -241,7 +429,7 @@ scorecard %>%
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
-#Calculate percentage of public and private schools with above-average median income in each average family income group
+# Calculate percentage of public and private schools with above-average median income in each average family income group
 scorecard %>%
     group_by(FAMINC.Cat, Control.Cat) %>%
     count(aboveaveincome) %>%
@@ -266,7 +454,7 @@ scorecard %>%
     ## 12 (98.7,145]  Private                  1    38   25
 
 ``` r
-#Calculate percentage of public and private schools within each average family income group
+# Calculate percentage of public and private schools within each average family income group
 scorecard %>%
     group_by(FAMINC.Cat) %>%
     count(Control.Cat) %>%
@@ -284,7 +472,69 @@ scorecard %>%
     ## 5 (98.7,145]  Public         18         10.6
     ## 6 (98.7,145]  Private       152         89.4
 
+It can be seen from the mosaic plot that the majority of colleges have a
+median income 6 years after entry lower than the average earnings in
+2017. Private colleges have a greater proportion of schools with
+above-average median income compared to public schools across all three
+groups of colleges with different ranges of average family income per
+thousand. Specifically, for the group with the lowest average family
+income, the percentage of public schools with above-average median
+earnings is only 0.85%, whereas for private colleges, the percentage is
+3.54%, about 4 times greater. With regard to institutions with average
+family income from 52.1 to 98.7 thousand USD, public schools with
+above-average median earnings comprise 4.77% of the total number of
+public institutions. Meanwhile, the percentage for private higher
+institutions is almost double that of public colleges at 8.78%. In terms
+of the highest average family income group, private colleges with
+above-average median earnings after graduation comprise one-fourth of
+the private school population in the data set, whereas for public
+institutions the number is 16.67%. These numbers also demonstrate that
+college institutions with higher average family income would also have a
+greater chance of having above-average median earnings among graduates:
+comparing the lowest and highest average family earnings group, the
+proportion of private schools with the above-average median income for
+the higher family income group is 7 times higher than that of schools
+having lower-income families.
+
+Furthermore, there is a higher proportion of private schools compared to
+public institutions within higher average family income groups. This
+difference can be observed most clearly in the group with average family
+earnings from 98.7 to 145 thousand dollars, in which the percentage of
+private schools is almost 90%. For institutions with average family
+income ranging from 52.1 to 98.7 thousand USD, private colleges still
+comprise the majority at 64.4%. However, regarding the colleges with the
+lowest average family income, it is the only group with a higher
+percentage of public schools than private institutions at 55.7%.
+
 ## Fitted Model
+
+Because this research question involves a binary outcome, I fit a
+logistic regression model to restrict the predicted probabilities
+between 0 and 1. In order to decide what is considered above average
+income, I divide the median earning 6 years after entry variable into
+two categories based on its comparison to the 2017 average income of
+college graduates, which is \$49,785 (Korn Ferry, 2017). For the
+variable on the control type of the institution, public colleges
+function as the baseline, while the coefficient for private colleges is
+shown in the model.
+
+The predictor variable involving the average family income of colleges
+functions as a confounder in the model. I believe that this variable is
+a confounding variable rather than an effect modifier since family
+income does not alter the impact that different institutional types have
+on income after graduation. Nonetheless, students from higher-income
+families would have a higher chance of going to private colleges than
+those from low-income backgrounds since private colleges often have
+higher tuition fees than public colleges. Furthermore, as mentioned
+previously, those from high-income families have greater access to
+high-income jobs due to better family connections and K-12 education,
+etc. Because whether a college is public or private does not impact a
+student’s family earnings, average family income meets the requirements
+of a confounder. I also modify the variable so that the model
+demonstrates family income in the thousand. I believe that this would
+make the interpretation of the variable’s slope more sensible since the
+effect of a \$1 difference in average family income is likely to be
+negligible.
 
 ``` r
 mod2 <- scorecard %>%
@@ -321,6 +571,46 @@ tidy(mod2)
     ## 2 Control.CatPrivate   0.881    0.213        4.14 3.48e-  5
     ## 3 FAMINC1000           0.0309   0.00278     11.1  1.43e- 28
 
+The model indicates that private colleges are associated with a greater
+odds of having an above-average median income among graduates compared
+to public universities, provided that the colleges being compared have a
+similar average family income. In particular, the odds of having
+above-average median earnings for public schools with an average family
+income of \$0 are estimated to be only 0.004. Meanwhile, such odds are
+predicted to be 2.4 times higher for private colleges compared to the
+odds for public institutions, holding average family income constant.
+
+Based on our 95% confidence interval, our observed data would not be
+unusual if the true odds of having an above-average median income among
+private colleges is between 1.6 and 3.7 times higher compared to the
+odds for public colleges. This interval is quite narrow, suggesting that
+our sample is relatively large and has small variability. All the values
+contained in the interval are also greater than 1, suggesting that
+private colleges have a higher odds of having above-average median
+income among graduates compared to public universities, adjusting for
+average family income. When comparing two colleges of the same type
+which differ in average family income by \$1,000, it is predicted that
+the ratio of odds of having above-average median earnings is 1.03, in
+which the group with higher average family income has the greater odds.
+
+The null hypothesis for our primary variable of interest is that the
+ratio of odds of having above-average median income between private and
+public universities is 1, holding average family income constant. From
+our data, the p-value for the exponentiated slope coefficient of the
+college’s control type variable is 3.48 × 10^(-5). This suggests that
+the probability of observing a test statistic as large or larger than
+our observed test statistic, assuming the null hypothesis is true, for
+our institutional control type variable is extremely small. Since our
+p-value is smaller than our chosen significance threshold of 0.05, we
+reject our null hypothesis that there is no relationship, keeping
+average family income constant, between the control type of higher
+education institutions and the odds of colleges having above-average
+median earnings among graduates. The p-value for our average family
+income variable is also smaller than 0.0001. As a result, our model is
+in favor of the alternative hypothesis that higher average family
+earnings are associated with an increased odds of colleges having
+above-average median income among graduates.
+
 ## Model Evaluation
 
 ``` r
@@ -335,7 +625,8 @@ mod2 %>%
   xlab('Actual Outcome of Colleges With Above Average Income (1 = Yes, 0 = No)') + 
   theme_classic() + 
   ggtitle('Predictions for Model 2') + 
-  geom_hline(yintercept = threshold, color = 'red', linetype = 2) 
+  geom_hline(yintercept = threshold, color = 'red', linetype = 2) +
+  theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
@@ -355,3 +646,20 @@ mod2 %>%
     ## 2              0 TRUE            843
     ## 3              1 FALSE            51
     ## 4              1 TRUE            111
+
+The boxplots are relatively separated: within the interquartile range,
+the predicted probabilities of colleges having above-average median
+income are mostly higher for those who were actually having
+above-average median earnings than for those who were not. To evaluate
+the model, I choose a threshold of 0.05 to balance the false negative
+and false positive rate of the model: estimating from the boxplot, this
+threshold gives correct prediction for approximately 75% of the cases on
+each side of the outcome. Based on my calculation, the accuracy
+percentage of the model is 73.2%. This indicates that the accuracy of
+the model is relatively high. The sensitivity rate is 68.5%, meaning
+that the false positive rate is 31.5%. In other words, among the
+institutions that have an above-average median income, our model is able
+to predict 68.5% of those cases correctly. Meanwhile, the specificity
+rate is 73.4%, so our false negative rate is 26.6%. To put it more
+simply, among the colleges with lower than average median income among
+graduates, our model can accurately predict 73.4% of those universities.
