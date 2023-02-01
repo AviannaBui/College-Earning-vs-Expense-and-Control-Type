@@ -421,11 +421,6 @@ scorecard %>%
     theme(plot.title = element_text(size = 12, face = "bold", hjust = 0.5))
 ```
 
-    ## Warning: `unite_()` was deprecated in tidyr 1.2.0.
-    ## ℹ Please use `unite()` instead.
-    ## ℹ The deprecated feature was likely used in the ggmosaic package.
-    ##   Please report the issue at <]8;;https://github.com/haleyjeppson/ggmosaichttps://github.com/haleyjeppson/ggmosaic]8;;>.
-
 ![](College-Earning-vs-Instructional-Expense-and-Control-Type_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
