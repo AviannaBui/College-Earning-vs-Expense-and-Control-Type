@@ -20,7 +20,7 @@ I use 5 variables in total for my analysis project, with colleges’ median sala
 
 The data set was last updated in June 2020. To further examine the data context, such as the calculation method of certain variables or the year a variable is recorded, a Data Dictionary is provided at https://drive.google.com/file/d/1pxQjf-n0LZvCEllIJGpl2FBGQUqDxaIs/view.
 
-## summary of Findings
+## Summary of Findings
 We are in favor of the hypothesis that there is a positive relationship between instructional expenses per full-time student and colleges’ median earnings 6 years after entry, adjusting for average family income and the degree type colleges mainly award. In particular, each additional dollar in instructional expenditures per student is associated with a $0.32 increase in median income among colleges, keeping predominant degree type and average family income of institutions constant. Based on our logistic regression model, we see that there is an association between private college education and greater odds of colleges having above-average median earnings compared to that of public universities after accounting for average family income. More specifically, holding average family income constant, the odds of gaining an above-average median income for private higher institutions are predicted to be 2.4 times higher than the odds for public institutions. 
 
 A more detailed discussion of the findings can be found within the "College-Earning-vs-Instructional-Expense-and-Control-Type.md" file within this repository.
